@@ -98,7 +98,7 @@ input:focus {
 .mensagens {
     width: 100%;
 
-    margin-top: 105px;
+    margin: 105px 0;
 }
 
 .mensagem {

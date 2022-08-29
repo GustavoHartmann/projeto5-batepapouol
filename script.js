@@ -20,8 +20,14 @@ function enviarNome() {
 }
 
 function carregarMensagens(resposta) {
-    console.log(resposta.data);
+    //console.log(resposta.data);
+    const promessa = axios.get("https://mock-api.driven.com.br/api/v6/uol/messages");
+
+    promessa.then(imprimirMensagens);
+    promessa.catch(tratarErroMensagensRecebidas);
 }
+
+const idMensagens = setInterval(carregarMensagens, 3000)
 
 function tratarErroNome(erro) {
     tratarErro404(erro);
@@ -39,14 +45,59 @@ function tratarErro404(erro) {
 }
 
 function manterConexao() {
-    axios.post("https://mock-api.driven.com.br/api/v6/uol/status", {
+    const promessa = axios.post("https://mock-api.driven.com.br/api/v6/uol/status", {
         name: nome
       })
-      console.log("ainda to on");
+
+      promessa.then(continuaConectado);
+      promessa.catch(desconectou);
+}
+
+function continuaConectado() {
+    console.log("ainda to on");
+}
+
+function desconectou() {
+    console.log("desconectou");
+    clearInterval(idConexao);
 }
 
 const idConexao = setInterval(manterConexao, 5000);
 
-function imprimirMensagens() {
+function imprimirMensagens(resposta) {
+    const mensagens = document.querySelector(".mensagens");
+    const arrayMensagens = resposta.data;
+    for(let i = 0; i < arrayMensagens.length; i++) {
+        if(arrayMensagens[i].type === "status") {
+            mensagens.innerHTML += `
+            <div class="mensagem ${arrayMensagens[i].type}">
+                <h1 class="tempo">(${arrayMensagens[i].time})</h1>
+                <p><b>${arrayMensagens[i].from}</b> ${arrayMensagens[i].text}</p>
+            </div>
+            `
+        } if(arrayMensagens[i].type === "message") {
+            mensagens.innerHTML += `
+            <div class="mensagem ${arrayMensagens[i].type}">
+                <h1 class="tempo">(${arrayMensagens[i].time})</h1>
+                <p><b>${arrayMensagens[i].from}</b> para <b>${arrayMensagens[i].to}</b>: ${arrayMensagens[i].text}</p>
+            </div>
+            `
+        } if(arrayMensagens[i].type === "private_message" && arrayMensagens[i].to === nome) {
+            mensagens.innerHTML += `
+            <div class="mensagem ${arrayMensagens[i].type}">
+                <h1 class="tempo">(${arrayMensagens[i].time})</h1>
+                <p><b>${arrayMensagens[i].from}</b> reservadamente para <b>${arrayMensagens[i].to}</b>: ${arrayMensagens[i].text}</p>
+            </div>
+            `
+        }
+    }
+    const ultimaMensagem = document.querySelector(".mensagem:last-child");
+    ultimaMensagem.scrollIntoView();
+}
 
+function tratarErroMensagensRecebidas(erro) {
+    tratarErro404(erro);
+    if(erro.response.status == statusCode400) {
+        prompt("Algo de errado aconteceu");
+    }
 }
