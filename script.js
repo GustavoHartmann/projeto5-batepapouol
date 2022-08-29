@@ -101,3 +101,23 @@ function tratarErroMensagensRecebidas(erro) {
         prompt("Algo de errado aconteceu");
     }
 }
+
+function enviarMensagem() {
+    const mensagemDigitada = document.querySelector("input").value;
+    const promessa = axios.post("https://mock-api.driven.com.br/api/v6/uol/messages", {
+        from: nome,
+        to: "Todos",
+        text: mensagemDigitada,
+        type: "message"
+    });
+    promessa.then(imprimirMensagens);
+    promessa.catch(tratarErroMensagensEnviada);
+}
+
+function tratarErroMensagensEnviada(erro) {
+    tratarErro404(erro);
+    if(erro.response.status == statusCode400) {
+        prompt("Não foi possível enviar a mensagem pois você foi desconectado");
+        window.location.reload();
+    }
+}
